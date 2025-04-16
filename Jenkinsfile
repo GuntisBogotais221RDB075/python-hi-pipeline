@@ -12,12 +12,12 @@ pipeline {
                     userRemoteConfigs: [[url: 'https://github.com/mtararujs/python-greetings.git']]
                 ])
                 
-                bat '''
+                sh '''
                     echo "Starting dependencies installation..."
                     
-                    python -m venv venv
-                    call venv\\Scripts\\activate
-                    python -m pip install -r requirements.txt
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install -r requirements.txt
                     
                     echo "Dependencies successfully installed!"
                 '''
