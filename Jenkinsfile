@@ -14,7 +14,7 @@ pipeline {
                 
                 bat '''
                     echo Starting dependencies installation...
-                    pip install -r requirements.txt
+                    bat 'python -m pip install -r requirements.txt'
                     echo Dependencies successfully installed!
                 '''
             }
