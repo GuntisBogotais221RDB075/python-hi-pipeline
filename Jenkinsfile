@@ -1,105 +1,118 @@
 pipeline {
-    agent {
-        docker {
-            // Change this to your custom image if Node and pm2 are needed.
-            image 'python:3.9-slim'
-            // For a custom image that includes Node and pm2, you might use:
-            // image 'my-build-image:latest'
-        }
-    }
-    
+    agent any
+
     stages {
         stage('install-pip-deps') {
             steps {
-                echo "Installing all necessary dependencies..."
-                
-                // Checkout the python-greetings repo containing your requirements.txt
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: 'main']],
-                    userRemoteConfigs: [[url: 'https://github.com/mtararujs/python-greetings.git']]
-                ])
-                
-                sh '''
-                    echo "Starting dependencies installation..."
-                    
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    python -m pip install -r requirements.txt
-                    
-                    echo "Dependencies successfully installed!"
-                '''
+                script {
+                    docker.image('my-build-image:latest').inside {
+                        echo "Installing all necessary dependencies..."
+                        
+                        // Checkout the python-greetings repo (has requirements.txt)
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: 'main']],
+                            userRemoteConfigs: [[url: 'https://github.com/mtararujs/python-greetings.git']]
+                        ])
+                        
+                        sh '''
+                            echo "Starting dependencies installation..."
+                            
+                            python3 -m venv venv
+                            . venv/bin/activate
+                            python -m pip install -r requirements.txt
+                            
+                            echo "Dependencies successfully installed!"
+                        '''
+                    }
+                }
             }
         }
         
         stage('deploy-to-dev') {
             steps {
-                echo "Deploying to DEV environment..."
                 script {
-                    deployToEnvironment('dev', '7001')
+                    docker.image('my-build-image:latest').inside {
+                        echo "Deploying to DEV environment..."
+                        deployToEnvironment('dev', '7001')
+                    }
                 }
             }
         }
         
         stage('tests-on-dev') {
             steps {
-                echo "Running tests in DEV environment..."
                 script {
-                    testInEnvironment('dev', '7001')
+                    docker.image('my-build-image:latest').inside {
+                        echo "Running tests in DEV environment..."
+                        testInEnvironment('dev', '7001')
+                    }
                 }
             }
         }
         
         stage('deploy-to-staging') {
             steps {
-                echo "Deploying to STAGING environment..."
                 script {
-                    deployToEnvironment('staging', '7002')
+                    docker.image('my-build-image:latest').inside {
+                        echo "Deploying to STAGING environment..."
+                        deployToEnvironment('staging', '7002')
+                    }
                 }
             }
         }
         
         stage('tests-on-staging') {
             steps {
-                echo "Running tests in STAGING environment..."
                 script {
-                    testInEnvironment('staging', '7002')
+                    docker.image('my-build-image:latest').inside {
+                        echo "Running tests in STAGING environment..."
+                        testInEnvironment('staging', '7002')
+                    }
                 }
             }
         }
         
         stage('deploy-to-preprod') {
             steps {
-                echo "Deploying to PREPROD environment..."
                 script {
-                    deployToEnvironment('preprod', '7003')
+                    docker.image('my-build-image:latest').inside {
+                        echo "Deploying to PREPROD environment..."
+                        deployToEnvironment('preprod', '7003')
+                    }
                 }
             }
         }
         
         stage('tests-on-preprod') {
             steps {
-                echo "Running tests in PREPROD environment..."
                 script {
-                    testInEnvironment('preprod', '7003')
+                    docker.image('my-build-image:latest').inside {
+                        echo "Running tests in PREPROD environment..."
+                        testInEnvironment('preprod', '7003')
+                    }
                 }
             }
         }
         
         stage('deploy-to-prod') {
             steps {
-                echo "Deploying to PROD environment..."
                 script {
-                    deployToEnvironment('prod', '7004')
+                    docker.image('my-build-image:latest').inside {
+                        echo "Deploying to PROD environment..."
+                        deployToEnvironment('prod', '7004')
+                    }
                 }
             }
         }
         
         stage('tests-on-prod') {
             steps {
-                echo "Running tests in PROD environment..."
                 script {
-                    testInEnvironment('prod', '7004')
+                    docker.image('my-build-image:latest').inside {
+                        echo "Running tests in PROD environment..."
+                        testInEnvironment('prod', '7004')
+                    }
                 }
             }
         }
@@ -199,11 +212,11 @@ def testInEnvironment(String envName, String port) {
         const config = getConfig();
         
         if (!config[env]) {
-          console.warn(`Warning: No configuration for \${env} environment, using dev`);
+          console.warn(\`Warning: No configuration for \${env} environment, using dev\`);
           config[env] = config.dev;
         }
 
-        console.log(`Using host: \${config[env].host} for environment: \${env}`);
+        console.log(\`Using host: \${config[env].host} for environment: \${env}\`);
 
         export default (method, url, data, headers) => {
           return request(config[env].host)[method](url).send(data).set(headers);
