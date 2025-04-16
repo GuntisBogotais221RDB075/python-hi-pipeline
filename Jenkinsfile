@@ -1,20 +1,27 @@
 pipeline {
     agent any
-    
+
+    // just a check
+    environment {
+        PATH = "C:\\Python39;C:\\Python39\\Scripts;${env.PATH}"
+    }
+
     stages {
         stage('install-pip-deps') {
             steps {
                 echo "Installing all necessary dependencies..."
                 
+                // Checkout the python-greetings repository
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: 'main']],
                     userRemoteConfigs: [[url: 'https://github.com/mtararujs/python-greetings.git']]
                 ])
                 
+                // Directly run commands in a bat multiline block.
                 bat '''
                     echo Starting dependencies installation...
-                    bat 'python -m pip install -r requirements.txt'
+                    python -m pip install -r requirements.txt
                     echo Dependencies successfully installed!
                 '''
             }
@@ -89,7 +96,7 @@ def deployApp(String environment, String appPort) {
         
         call pm2 delete greetings-app-${environment} || exit /b 0
         
-        pip install -r requirements.txt
+        python -m pip install -r requirements.txt
         call pm2 start app.py --name greetings-app-${environment} -- --port ${appPort}
     """
 }
