@@ -1,27 +1,33 @@
 pipeline {
     agent any
 
-    // just a check
-    environment {
+    // Configure PYTHON_CMD to point to your Python executable.
+    // Option 1: Using the Python launcher (commonly available on Windows installations)
+    // environment { PYTHON_CMD = "py" }
+    // Option 2: Use the full path to python.exe (adjust the path to match your installation)
+    environment { 
+        PYTHON_CMD = "C:\\Python39\\python.exe"
+        // Optionally, add Python and Scripts directories to PATH if needed
         PATH = "C:\\Python39;C:\\Python39\\Scripts;${env.PATH}"
     }
 
     stages {
+
         stage('install-pip-deps') {
             steps {
                 echo "Installing all necessary dependencies..."
                 
-                // Checkout the python-greetings repository
+                // Checkout the repository containing dependencies (python-greetings)
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: 'main']],
                     userRemoteConfigs: [[url: 'https://github.com/mtararujs/python-greetings.git']]
                 ])
                 
-                // Directly run commands in a bat multiline block.
+                // Use a bat block to run the pip install command via the PYTHON_CMD variable.
                 bat '''
                     echo Starting dependencies installation...
-                    python -m pip install -r requirements.txt
+                    %PYTHON_CMD% -m pip install -r requirements.txt
                     echo Dependencies successfully installed!
                 '''
             }
@@ -85,6 +91,7 @@ pipeline {
     }
 }
 
+// Deploy application function that also installs the required dependencies using Python pip.
 def deployApp(String environment, String appPort) {
     bat """
         echo Deploying to ${environment} environment...
@@ -96,11 +103,12 @@ def deployApp(String environment, String appPort) {
         
         call pm2 delete greetings-app-${environment} || exit /b 0
         
-        python -m pip install -r requirements.txt
+        %PYTHON_CMD% -m pip install -r requirements.txt
         call pm2 start app.py --name greetings-app-${environment} -- --port ${appPort}
     """
 }
 
+// Run tests function that checks out another repository and performs test commands.
 def runTests(String environment, String appPort) {
     bat """
         echo Running tests in ${environment} environment...
