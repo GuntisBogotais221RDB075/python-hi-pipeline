@@ -15,9 +15,9 @@ pipeline {
                 bat '''
                     echo "Starting dependencies installation..."
                     
-                    python3 -m venv venv
+                    python -m venv venv
                     call venv\\Scripts\\activate
-                    pip install -r requirements.txt
+                    python -m pip install -r requirements.txt
                     
                     echo "Dependencies successfully installed!"
                 '''
