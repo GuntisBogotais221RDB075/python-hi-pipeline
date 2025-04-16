@@ -12,10 +12,10 @@ pipeline {
                     userRemoteConfigs: [[url: 'https://github.com/mtararujs/python-greetings.git']]
                 ])
                 
-                sh '''
-                    echo "Starting dependencies installation..."
+                bat '''
+                    echo Starting dependencies installation...
                     pip install -r requirements.txt
-                    echo "Dependencies successfully installed!"
+                    echo Dependencies successfully installed!
                 '''
             }
         }
@@ -79,28 +79,32 @@ pipeline {
 }
 
 def deployApp(String environment, String appPort) {
-    sh """
-        echo "Deploying to ${environment} environment..."
+    bat """
+        echo Deploying to ${environment} environment...
         
-        git clone https://github.com/mtararujs/python-greetings.git
+        if not exist python-greetings (
+            git clone https://github.com/mtararujs/python-greetings.git
+        )
         cd python-greetings
         
-        pm2 delete greetings-app-${environment} || true
+        call pm2 delete greetings-app-${environment} || exit /b 0
         
         pip install -r requirements.txt
-        pm2 start app.py --name greetings-app-${environment} -- --port ${appPort}
+        call pm2 start app.py --name greetings-app-${environment} -- --port ${appPort}
     """
 }
 
 def runTests(String environment, String appPort) {
-    sh """
-        echo "Running tests in ${environment} environment..."
+    bat """
+        echo Running tests in ${environment} environment...
         
-        git clone https://github.com/mtararujs/course-js-api-framework.git
+        if not exist course-js-api-framework (
+            git clone https://github.com/mtararujs/course-js-api-framework.git
+        )
         cd course-js-api-framework
-        npm install
+        call npm install
         
-        export TEST_ENV="${environment}"
-        npm run greetings greetings_${environment}
+        set TEST_ENV=${environment}
+        call npm run greetings greetings_${environment}
     """
 }
